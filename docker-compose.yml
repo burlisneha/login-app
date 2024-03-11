@@ -1,18 +1,22 @@
 version: "3"
 services:
-        login-app:
-            container_name: login-app
-            image: latest123/login-app
-            restart: always
-            build: .
-            ports:
-              - "7500:7500"
-            links:
-              - mongo
-        mongo:
-              container_name: mongo
-              image: mongo
-              volumes:
-                - ./data:/data/db
-              ports:
-                - '27018:27017'
+  mongodb:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+  login-app:
+    build: ./
+    container_name: login-app
+    ports:
+      - "7500:7500"
+    depends_on:
+      - mongodb
+    
+volumes:
+  mongodb_data:
+    driver: local
+
+
