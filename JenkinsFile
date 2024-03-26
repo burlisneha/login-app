@@ -83,7 +83,7 @@ pipeline {
 
         stage('Install Helm Chart') {
             steps {
-                kubeConfig(credentialsId: 'k8s-id', location: "${env.KUBECONFIG}")
+                kubeConfig(credentialsId: 'k8s-id')
                 sh "helm install my-release joker-0.1.0.tgz --namespace helm-deployment"
             }
         }
