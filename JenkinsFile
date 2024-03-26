@@ -75,9 +75,8 @@ pipeline {
         stage('Deploy Helm Chart') {
             steps {
                 script {
-                    def chartFileName = sh(script: "aws s3 ls s3://login-app-1/helm-charts/*.tgz | awk '{print \$4}'", returnStdout: true).trim()
-                    sh "helm install my-release s3://${S3_BUCKET}/${S3_PATH}/*.tgz"
-                    sh "helm install my-release ${chartFileName}"
+                    def chartFileName = sh(script: "aws s3 ls s3://${S3_BUCKET}/${S3_PATH}/*.tgz | awk '{print \$4}'", returnStdout: true).trim()
+                    sh "helm install my-release s3://${S3_BUCKET}/${S3_PATH}/${chartFileName}"
                 }
             }
         }
