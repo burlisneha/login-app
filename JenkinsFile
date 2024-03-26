@@ -1,0 +1,85 @@
+pipeline {
+    agent any
+
+    environment {
+        S3_BUCKET = 'login-app-1'
+        S3_PATH = 'helm-charts'
+        AWS_REGION = 'us-east-1'
+    }
+
+    stages {
+        stage('checkout') {
+            steps {
+                git 'https://github.com/Vidyadhar-R/login-app.git'
+            }
+        }
+        stage('Build and Push Docker Image') {
+            environment {
+                DOCKER_IMAGE = "vidyadhar7/nodejs:${BUILD_NUMBER}"
+                REGISTRY_CREDENTIALS = credentials('dockerhub')
+            }
+            steps {
+                script {
+                    def dockerImage = docker.build("${env.DOCKER_IMAGE}")
+                    docker.withRegistry('https://index.docker.io/v1/', "dockerhub") {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/Vidyadhar-R/login-app.git'
+            }
+        }
+        stage('Package Helm Chart') {
+            steps {
+                dir('charts/my-chart') {
+                    sh 'helm package .'
+                }
+            }
+        }
+        stage('Archive Helm Package') {
+            steps {
+                archiveArtifacts artifacts: 'charts/my-chart/*.tgz', fingerprint: true
+            }
+        }
+        stage('Upload to S3') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                    sh "aws s3 cp charts/my-chart/*.tgz s3://${S3_BUCKET}/${S3_PATH}/"
+                }
+            }
+        }
+        stage('Update Helm Repository Index') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                    sh 'helm repo index charts/my-chart --url s3://${S3_BUCKET}/${S3_PATH}/'
+                    sh 'aws s3 cp charts/my-chart/index.yaml s3://${S3_BUCKET}/${S3_PATH}/'
+                }
+            }
+        }
+        stage('Push to ECR') {
+            steps {
+                script {
+                    def ecrUrl = "130172986684.dkr.ecr.us-east-1.amazonaws.com/login-app"
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                        sh "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ecrUrl}"
+                        sh "docker build -t login-app ."
+                        sh "docker tag login-app:latest 130172986684.dkr.ecr.us-east-1.amazonaws.com/login-app:latest"
+                        sh "docker push ${ecrUrl}:latest"
+                    }
+                }
+            }
+        }
+        stage('Deploy Helm Chart') {
+            steps {
+                script {
+                    def chartFileName = sh(script: "aws s3 ls s3://login-app-1/helm-charts/*.tgz | awk '{print \$4}'", returnStdout: true).trim()
+                    sh "helm install my-release s3://${S3_BUCKET}/${S3_PATH}/*.tgz"
+                    sh "helm install my-release ${chartFileName}"
+                }
+            }
+        }
+    }
+}
