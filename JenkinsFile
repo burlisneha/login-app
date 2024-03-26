@@ -75,7 +75,7 @@ pipeline {
         stage('Download Helm Chart') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                    sh "aws s3 cp s3://${S3_BUCKET}/${S3_PATH}/*.tgz ."
+                    sh "aws s3 cp s3://login-app-1/helm-charts/ . --recursive"
                 }
             }
         }
