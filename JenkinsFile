@@ -5,6 +5,7 @@ pipeline {
         S3_BUCKET = 'login-app-1'
         S3_PATH = 'helm-charts'
         AWS_REGION = 'us-east-1'
+        KUBECONFIG = '/root/.kube/config'
     }
 
     stages {
