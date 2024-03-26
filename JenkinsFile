@@ -72,12 +72,17 @@ pipeline {
                 }
             }
         }
-        stage('Deploy Helm Chart') {
+        stage('Download Helm Chart') {
             steps {
-                script {
-                    def chartFileName = sh(script: "aws s3 ls s3://${S3_BUCKET}/${S3_PATH}/*.tgz | awk '{print \$4}'", returnStdout: true).trim()
-                    sh "helm install my-release s3://${S3_BUCKET}/${S3_PATH}/${chartFileName}"
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                    sh "aws s3 cp s3://${S3_BUCKET}/${S3_PATH}/*.tgz ."
                 }
+            }
+        }
+
+        stage('Install Helm Chart') {
+            steps {
+                sh "helm install my-release *.tgz"
             }
         }
     }
