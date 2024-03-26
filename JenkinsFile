@@ -66,8 +66,8 @@ pipeline {
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                         sh "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ecrUrl}"
                         sh "docker build -t login-app ."
-                        sh "docker tag login-app:latest 130172986684.dkr.ecr.us-east-1.amazonaws.com/login-app:latest"
-                        sh "docker push ${ecrUrl}:latest"
+                        sh "docker tag login-app:latest 130172986684.dkr.ecr.us-east-1.amazonaws.com/login-app:${BUILD_NUMBER}"
+                        sh "docker push ${ecrUrl}:${BUILD_NUMBER}"
                     }
                 }
             }
@@ -82,7 +82,7 @@ pipeline {
 
         stage('Install Helm Chart') {
             steps {
-                sh "helm install my-release *.tgz"
+                sh "helm install my-release *.tgz --namespace helm-deployment"
             }
         }
     }
