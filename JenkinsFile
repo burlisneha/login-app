@@ -86,7 +86,7 @@ pipeline {
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                         sh ('aws eks update-kubeconfig --name login-app --region us-east-1')
                         sh "kubectl get ns"
-                        sh "helm install my-release charts/my-chart/joker-0.1.0.tgz --namespace helm-deployment"
+                        sh "helm upgrade --install my-release charts/my-chart/joker-0.1.0.tgz --namespace helm-deployment"
                     }
                 }
             }
