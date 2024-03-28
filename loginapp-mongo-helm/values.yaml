@@ -92,7 +92,7 @@ pvc:
   #storageClass: powerplay-storage # or azure-file
   accessModes:
     - ReadWriteOnce  # or ReadWriteMany for azure-file
-  requestStorage: 1Gi
+  requestStorage: 5Gi
 
 
 nodeSelector: {}
