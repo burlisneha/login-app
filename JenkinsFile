@@ -15,7 +15,7 @@ pipeline {
         }
         stage('Build and Push Docker Image') {
             environment {
-                DOCKER_IMAGE = "vidyadhar7/nodejs:${BUILD_NUMBER} -t login-app/Dockerfile ."
+                DOCKER_IMAGE = "vidyadhar7/nodejs:${BUILD_NUMBER}"
                 REGISTRY_CREDENTIALS = credentials('dockerhub')
             }
             steps {
@@ -32,22 +32,35 @@ pipeline {
                 git 'https://github.com/Vidyadhar-R/login-app.git'
             }
         }
-        stage('Package Helm Chart') {
+        stage('Package Helm Chart - node') {
             steps {
                 dir('charts/my-chart') {
                     sh 'helm package .'
                 }
             }
         }
-        stage('Archive Helm Package') {
+        stage('Package Helm Chart - mongo') {
+            steps {
+                dir('loginapp-mongo-helm') {
+                    sh 'helm package .'
+                }
+            }
+        }
+        stage('Archive Helm Package - node') {
             steps {
                 archiveArtifacts artifacts: 'charts/my-chart/*.tgz', fingerprint: true
+            }
+        }
+        stage('Archive Helm Package - mongo') {
+            steps {
+                archiveArtifacts artifacts: 'loginapp-mongo-helm/* .tgz', fingerprint: true
             }
         }
         stage('Upload to S3') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                     sh "aws s3 cp charts/my-chart/*.tgz s3://${S3_BUCKET}/${S3_PATH}/"
+                    sh "aws s3 cp loginapp-mongo-helm/*.tgz s3://${S3_BUCKET}/${S3_PATH}/"
                 }
             }
         }
@@ -55,7 +68,9 @@ pipeline {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                     sh 'helm repo index charts/my-chart --url s3://${S3_BUCKET}/${S3_PATH}/'
+                    sh 'helm repo index loginapp-mongo-helm --url s3://${S3_BUCKET}/${S3_PATH}/'
                     sh 'aws s3 cp charts/my-chart/index.yaml s3://${S3_BUCKET}/${S3_PATH}/'
+                    sh 'aws s3 cp loginapp-mongo-helm/index.yaml s3://${S3_BUCKET}/${S3_PATH}/'
                 }
             }
         }
@@ -76,6 +91,7 @@ pipeline {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                     sh "aws s3 cp s3://login-app-1/helm-charts/ charts/my-chart --recursive"
+                    sh "aws s3 cp s3://login-app-1/helm-charts/ loginapp-mongo-helm --recursive"
                 }
             }
         }
@@ -86,7 +102,8 @@ pipeline {
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                         sh ('aws eks update-kubeconfig --name login-app --region us-east-1')
                         sh "kubectl get ns"
-                        sh "helm upgrade --install my-release charts/my-chart/joker-0.1.0.tgz --namespace helm-deployment"
+                        sh "helm upgrade --install node charts/my-chart/joker-0.1.0.tgz --namespace helm-deployment"
+                        sh "helm upgrade --install mongo loginapp-mongo-helm/*.tgz --namespace helm-deployment"
                     }
                 }
             }
