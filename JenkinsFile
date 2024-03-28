@@ -53,7 +53,7 @@ pipeline {
         }
         stage('Archive Helm Package - mongo') {
             steps {
-                archiveArtifacts artifacts: 'loginapp-mongo-helm/* .tgz', fingerprint: true
+                archiveArtifacts artifacts: 'loginapp-mongo-helm/*.tgz', fingerprint: true
             }
         }
         stage('Upload to S3') {
