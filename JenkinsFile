@@ -59,8 +59,8 @@ pipeline {
         stage('Upload to S3') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                    sh "aws s3 cp charts/my-chart/*.tgz s3://${S3_BUCKET}/${S3_PATH}/"
-                    sh "aws s3 cp loginapp-mongo-helm/*.tgz s3://${S3_BUCKET}/${S3_PATH}/"
+                    sh "aws s3 cp charts/my-chart/ s3://${S3_BUCKET}/${S3_PATH}/"
+                    sh "aws s3 cp loginapp-mongo-helm/ s3://${S3_BUCKET}/${S3_PATH}/"
                 }
             }
         }
@@ -90,8 +90,8 @@ pipeline {
         stage('Download Helm Chart') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                    sh "aws s3 cp s3://login-app-1/helm-charts/ charts/my-chart --recursive"
-                    sh "aws s3 cp s3://login-app-1/helm-charts/ loginapp-mongo-helm --recursive"
+                    sh "aws s3 cp s3://login-app-1/helm-charts/ charts/my-chart/ --recursive"
+                    sh "aws s3 cp s3://login-app-1/helm-charts/ loginapp-mongo-helm/ --recursive"
                 }
             }
         }
