@@ -56,10 +56,16 @@ pipeline {
                 archiveArtifacts artifacts: 'loginapp-mongo-helm/*.tgz', fingerprint: true
             }
         }
-        stage('Upload to S3') {
+        stage('Upload node.tgz to S3') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                     sh "aws s3 cp charts/my-chart/*.tgz s3://${S3_BUCKET}/${S3_PATH}/"
+                }
+            }
+        }
+        stage('Upload mongo.tgz to S3') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                     sh "aws s3 cp loginapp-mongo-helm/*.tgz s3://${S3_BUCKET}/${S3_PATH}/"
                 }
             }
