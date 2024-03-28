@@ -7,7 +7,7 @@ var express            = require("express"),
  LocalStrategy         = require("passport-local"),
  passportLocalMongoose = require("passport-local-mongoose");
 
-mongoose.connect("mongodb://mongo:27017/Samp_data", { useUnifiedTopology: true, useNewUrlParser: true });
+mongoose.connect("mongodb://mongo.helm-deployment.svc.cluster.local:27017/Samp_data", { useUnifiedTopology: true, useNewUrlParser: true });
 // mongoose.connect("mongodb://localhost/Samp_data");
 app.set('view engine', 'ejs');
 app.engine('html', require('ejs').renderFile); 
