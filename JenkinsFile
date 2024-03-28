@@ -15,7 +15,7 @@ pipeline {
         }
         stage('Build and Push Docker Image') {
             environment {
-                DOCKER_IMAGE = "vidyadhar7/nodejs:${BUILD_NUMBER}"
+                DOCKER_IMAGE = "vidyadhar7/nodejs:${BUILD_NUMBER} -f /var/lib/jenkins/workspace/login-app/Dockerfile"
                 REGISTRY_CREDENTIALS = credentials('dockerhub')
             }
             steps {
