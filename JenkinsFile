@@ -75,14 +75,14 @@ pipeline {
         stage('Download Helm Chart') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                    sh "aws s3 cp s3://login-app-1/helm-charts/ . --recursive"
+                    sh "aws s3 cp s3://login-app-1/helm-charts/ charts/my-chart --recursive"
                 }
             }
         }
 
         stage('Install Helm Chart') {
             steps {
-                sh "helm install my-release joker-0.1.0.tgz --namespace helm-deployment"
+                sh "helm install my-release charts/my-chart/joker-0.1.0.tgz --namespace helm-deployment"
             }
         }
     }
