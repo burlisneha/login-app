@@ -82,7 +82,7 @@ pipeline {
 
         stage('Install Helm Chart') {
             steps {
-                sh "helm install my-release charts/my-chart/joker-0.1.0.tgz --namespace helm-deployment"
+                sh "helm install my-release charts/my-chart/joker-0.1.0.tgz --namespace helm-deployment --kubeconfig /root/.kube/config"
             }
         }
     }
