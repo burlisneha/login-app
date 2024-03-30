@@ -56,17 +56,6 @@ pipeline {
                 archiveArtifacts artifacts: 'loginapp-mongo-helm/*.tgz', fingerprint: true
             }
         }
-        stage('Push Helm Charts to S3') {
-            steps {
-                script {
-                    // Push node chart
-                    sh "aws s3 cp charts/my-chart/*.tgz s3://${S3_BUCKET}/${S3_PATH}/node/ --recursive --region ${AWS_REGION}"
-                    
-                    // Push mongo chart
-                    sh "aws s3 cp loginapp-mongo-helm/*.tgz s3://${S3_BUCKET}/${S3_PATH}/mongo/ --recursive --region ${AWS_REGION}"
-                }
-            }
-        }
         stage('Update Helm Repository Index') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
