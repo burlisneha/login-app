@@ -82,19 +82,7 @@ autoscaling:
 volumeMounts:
     - name: storage
       mountPath: /data/db
-volumes:
-  - name: storage
-    persistentVolumeClaim:
-      claimName: mongo-pvc
-pvc:
-  enabled: true
-  name: mongo-pvc
-  #storageClass: powerplay-storage # or azure-file
-  accessModes:
-    - ReadWriteOnce  # or ReadWriteMany for azure-file
-  requestStorage: 5Gi
-
-
+      
 nodeSelector: {}
 
 tolerations: []
