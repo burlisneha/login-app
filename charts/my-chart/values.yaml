@@ -58,7 +58,7 @@ ingress:
           pathType: Prefix
   tls: []
 env:
-  MONGO_URL: "mongo.helm-deployment.svc.cluster.local"
+  MONGO_URL: "mongo.helm-deployment.svc.cluster.local:27017"
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
