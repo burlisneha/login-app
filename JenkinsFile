@@ -56,38 +56,11 @@ pipeline {
                 archiveArtifacts artifacts: 'loginapp-mongo-helm/*.tgz', fingerprint: true
             }
         }
-        stage('Upload node.tgz to S3') {
-            steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                    sh "aws s3 cp charts/my-chart/*.tgz s3://${S3_BUCKET}/${S3_PATH}/"
-                }
-            }
-        }
-        stage('Upload mongo.tgz to S3') {
-            steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                    sh "aws s3 cp loginapp-mongo-helm/*.tgz s3://${S3_BUCKET}/${S3_PATH}/"
-                }
-            }
-        }
         stage('Update Helm Repository Index') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                     sh 'helm repo index charts/my-chart --url s3://${S3_BUCKET}/${S3_PATH}/'
                     sh 'aws s3 cp charts/my-chart/index.yaml s3://${S3_BUCKET}/${S3_PATH}/'
-                }
-            }
-        }
-        stage('Push to ECR') {
-            steps {
-                script {
-                    def ecrUrl = "130172986684.dkr.ecr.us-east-1.amazonaws.com/login-app"
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                        sh "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ecrUrl}"
-                        sh "docker build -t login-app ."
-                        sh "docker tag login-app:latest 130172986684.dkr.ecr.us-east-1.amazonaws.com/login-app:${BUILD_NUMBER}"
-                        sh "docker push ${ecrUrl}:${BUILD_NUMBER}"
-                    }
                 }
             }
         }
