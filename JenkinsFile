@@ -56,6 +56,17 @@ pipeline {
                 archiveArtifacts artifacts: 'loginapp-mongo-helm/*.tgz', fingerprint: true
             }
         }
+        stage('Push Helm Charts to S3') {
+            steps {
+                script {
+                    // Push node chart
+                    sh "aws s3 cp charts/my-chart/*.tgz s3://${S3_BUCKET}/${S3_PATH}/node/ --recursive --region ${AWS_REGION}"
+                    
+                    // Push mongo chart
+                    sh "aws s3 cp loginapp-mongo-helm/*.tgz s3://${S3_BUCKET}/${S3_PATH}/mongo/ --recursive --region ${AWS_REGION}"
+                }
+            }
+        }
         stage('Update Helm Repository Index') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
@@ -67,8 +78,8 @@ pipeline {
         stage('Download Helm Chart') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-id', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                    sh "aws s3 cp s3://login-app-1/helm-charts/ charts/my-chart/ --recursive"
-                    sh "aws s3 cp s3://login-app-1/helm-charts/ loginapp-mongo-helm/ --recursive"
+                    sh "aws s3 cp s3://login-app-1/helm-charts/node charts/my-chart/ --recursive"
+                    sh "aws s3 cp s3://login-app-1/helm-charts/mongo loginapp-mongo-helm/ --recursive"
                 }
             }
         }
@@ -80,8 +91,8 @@ pipeline {
                         sh ('aws eks update-kubeconfig --name login-app --region us-east-1')
                         sh "kubectl get ns"
                         sh "helm create helm-deployment"
-                        sh "helm upgrade --install node charts/my-chart/joker-0.1.0.tgz --namespace helm-deployment"
                         sh "helm upgrade --install mongo loginapp-mongo-helm --namespace helm-deployment"
+                        sh "helm upgrade --install node charts/my-chart/joker-0.1.0.tgz --namespace helm-deployment"
                     }
                 }
             }
