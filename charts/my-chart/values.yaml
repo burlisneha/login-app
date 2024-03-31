@@ -56,7 +56,6 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
-  tls: []
 env:
   MONGO_URL: "mongo.helm-deployment.svc.cluster.local:27017"
 
